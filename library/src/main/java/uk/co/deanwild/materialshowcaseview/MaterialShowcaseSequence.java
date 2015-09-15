@@ -17,6 +17,7 @@ public class MaterialShowcaseSequence implements IDetachedListener {
     Activity mActivity;
     private ShowcaseConfig mConfig;
     private int mSequencePosition = 0;
+    private String singleUseShowcaseID;
 
     public MaterialShowcaseSequence(Activity activity) {
         mActivity = activity;
@@ -29,11 +30,16 @@ public class MaterialShowcaseSequence implements IDetachedListener {
     }
 
     public MaterialShowcaseSequence addSequenceItem(View targetView, String content, String dismissText) {
+        return addSequenceItem(targetView, content, dismissText, null);
+    }
+
+    public MaterialShowcaseSequence addSequenceItem(View targetView, String content, String dismissText, String showcaseID) {
 
         MaterialShowcaseView sequenceItem = new MaterialShowcaseView.Builder(mActivity)
                 .setTarget(targetView)
                 .setDismissText(dismissText)
                 .setContentText(content)
+                .showUntil(showcaseID)
                 .build();
 
         if (mConfig != null) {
@@ -51,13 +57,14 @@ public class MaterialShowcaseSequence implements IDetachedListener {
 
     public MaterialShowcaseSequence singleUse(String sequenceID) {
         mSingleUse = true;
-        mPrefsManager = new PrefsManager(mActivity, sequenceID);
+        mPrefsManager = new PrefsManager(mActivity);
+        singleUseShowcaseID = sequenceID;
         return this;
     }
 
     public boolean hasFired() {
 
-        if (mPrefsManager.getSequenceStatus() == PrefsManager.SEQUENCE_FINISHED) {
+        if (mPrefsManager.getSequenceStatus(singleUseShowcaseID) == PrefsManager.SEQUENCE_FINISHED) {
             return true;
         }
 
@@ -78,7 +85,7 @@ public class MaterialShowcaseSequence implements IDetachedListener {
              * See if we have started this sequence before, if so then skip to the point we reached before
              * instead of showing the user everything from the start
              */
-            mSequencePosition = mPrefsManager.getSequenceStatus();
+            mSequencePosition = mPrefsManager.getSequenceStatus(singleUseShowcaseID);
 
             if (mSequencePosition > 0) {
                 for (int i = 0; i < mSequencePosition; i++) {
@@ -104,7 +111,7 @@ public class MaterialShowcaseSequence implements IDetachedListener {
              * We've reached the end of the sequence, save the fired state
              */
             if (mSingleUse) {
-                mPrefsManager.setFired();
+                mPrefsManager.setFired(singleUseShowcaseID);
             }
         }
     }
@@ -125,7 +132,7 @@ public class MaterialShowcaseSequence implements IDetachedListener {
              */
             if (mPrefsManager != null) {
                 mSequencePosition++;
-                mPrefsManager.setSequenceStatus(mSequencePosition);
+                mPrefsManager.setSequenceStatus(mSequencePosition, singleUseShowcaseID);
             }
 
             showNextItem();

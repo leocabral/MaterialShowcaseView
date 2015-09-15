@@ -483,7 +483,9 @@ public class MaterialShowcaseView extends FrameLayout implements View.OnTouchLis
          * so the user can tell if he wants to be warned every time.
          */
         public Builder showUntil(String showAgainShowcaseID) {
-            showcaseView.showUntil(showAgainShowcaseID);
+            if (showAgainShowcaseID != null) {
+                showcaseView.showUntil(showAgainShowcaseID);
+            }
             return this;
         }
 
@@ -626,6 +628,11 @@ public class MaterialShowcaseView extends FrameLayout implements View.OnTouchLis
         }
 
         if (mPrefsManager.hasFired(showAgainShowcaseID)) {
+
+            if (mDetachedListener != null) {
+                mDetachedListener.onShowcaseDetached(this, true);
+            }
+
             return false;
         }
 

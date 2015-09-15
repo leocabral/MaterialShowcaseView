@@ -61,18 +61,18 @@ public class SequenceExample extends ActionBarActivity implements View.OnClickLi
         ShowcaseConfig config = new ShowcaseConfig();
         config.setDelay(500); // half second between each showcase view
 
-        MaterialShowcaseSequence sequence = new MaterialShowcaseSequence(this, SHOWCASE_ID);
+        MaterialShowcaseSequence sequence = new MaterialShowcaseSequence(this);
 
         sequence.setConfig(config);
 
         sequence.addSequenceItem(mButtonOne,
-                "This is button one", "GOT IT");
+                "This is button one", "GOT IT", "asd");
 
         sequence.addSequenceItem(mButtonTwo,
-                "This is button two", "GOT IT");
+                "This is button two", "GOT IT", "asdd");
 
         sequence.addSequenceItem(mButtonThree,
-                "This is button three", "GOT IT");
+                "This is button three", "GOT IT", "asddd");
 
         sequence.start();
 
