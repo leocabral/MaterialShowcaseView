@@ -17,6 +17,14 @@ public class PrefsManager {
     private String showcaseID = null;
     private Context context;
 
+    public PrefsManager(Context context) {
+        this.context = context;
+    }
+
+    /***
+     * @deprecated Pass the showcaseID when needed
+     */
+    @Deprecated
     public PrefsManager(Context context, String showcaseID) {
         this.context = context;
         this.showcaseID = showcaseID;
@@ -24,20 +32,35 @@ public class PrefsManager {
 
 
     /***
-     * METHODS FOR INDIVIDUAL SHOWCASE VIEWS
+     * @deprecated send the showcaseID via param
      */
+    @Deprecated
     boolean hasFired() {
         int status = getSequenceStatus();
         return (status == SEQUENCE_FINISHED);
     }
 
+    boolean hasFired(String showcaseID) {
+        int status = getSequenceStatus(showcaseID);
+        return (status == SEQUENCE_FINISHED);
+    }
+
+    /***
+     * @deprecated send the showcaseID via param
+     */
+    @Deprecated
     void setFired() {
         setSequenceStatus(SEQUENCE_FINISHED);
     }
 
+    void setFired(String showcaseID) {
+        setSequenceStatus(SEQUENCE_FINISHED, showcaseID);
+    }
+
     /***
-     * METHODS FOR SHOWCASE SEQUENCES
+     * @deprecated send the showcaseID via param
      */
+    @Deprecated
     int getSequenceStatus() {
         return context
                 .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -45,13 +68,36 @@ public class PrefsManager {
 
     }
 
+    int getSequenceStatus(String showcaseID) {
+        return context
+                .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                .getInt(STATUS + showcaseID, SEQUENCE_NEVER_STARTED);
+
+    }
+
+    /***
+     * @deprecated send the showcaseID via param
+     */
+    @Deprecated
     void setSequenceStatus(int status) {
         SharedPreferences internal = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         internal.edit().putInt(STATUS + showcaseID, status).apply();
     }
 
+    void setSequenceStatus(int status, String showcaseID) {
+        SharedPreferences internal = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        internal.edit().putInt(STATUS + showcaseID, status).apply();
+    }
 
+    /***
+     * @deprecated send the showcaseID via param
+     */
+    @Deprecated
     public void resetShowcase() {
+        resetShowcase(context, showcaseID);
+    }
+
+    public void resetShowcase(String showcaseID) {
         resetShowcase(context, showcaseID);
     }
 

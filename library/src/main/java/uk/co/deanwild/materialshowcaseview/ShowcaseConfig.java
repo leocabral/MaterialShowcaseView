@@ -15,6 +15,7 @@ public class ShowcaseConfig {
     private long mDelay = DEFAULT_DELAY;
     private int mMaskColour;
     private int mContentTextColor;
+    private int mCheckBoxTextColor;
     private int mDismissTextColor;
     private long mFadeDuration = DEFAULT_FADE_TIME;
 
@@ -22,6 +23,7 @@ public class ShowcaseConfig {
         mMaskColour = Color.parseColor(ShowcaseConfig.DEFAULT_MASK_COLOUR);
         mContentTextColor = Color.parseColor("#ffffff");
         mDismissTextColor = Color.parseColor("#ffffff");
+        mCheckBoxTextColor = Color.parseColor("#ffffff");
     }
 
     public long getDelay() {
@@ -62,5 +64,13 @@ public class ShowcaseConfig {
 
     public void setFadeDuration(long fadeDuration) {
         this.mFadeDuration = fadeDuration;
+    }
+
+    public int getCheckBoxTextColor() {
+        return mCheckBoxTextColor;
+    }
+
+    public void setCheckBoxTextColor(int mCheckBoxTextColor) {
+        this.mCheckBoxTextColor = mCheckBoxTextColor;
     }
 }

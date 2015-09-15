@@ -20,6 +20,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.widget.CheckBox;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
@@ -46,6 +47,7 @@ public class MaterialShowcaseView extends FrameLayout implements View.OnTouchLis
     private boolean mUseAutoRadius = true;
     private View mContentBox;
     private TextView mContentTextView;
+    private CheckBox mContentCheckBox;
     private TextView mDismissButton;
     private int mGravity;
     private int mContentBottomMargin;
@@ -60,10 +62,13 @@ public class MaterialShowcaseView extends FrameLayout implements View.OnTouchLis
     private long mDelayInMillis = ShowcaseConfig.DEFAULT_DELAY;
     private int mBottomMargin = 0;
     private boolean mSingleUse = false; // should display only once
+    private boolean mShowAgain = true; // should display once again
     private PrefsManager mPrefsManager; // used to store state doe single use mode
     List<IShowcaseListener> mListeners; // external listeners who want to observe when we show and dismiss
     private UpdateOnGlobalLayout mLayoutListener;
     private IDetachedListener mDetachedListener;
+    private String singleUseShowcaseID;
+    private String showAgainShowcaseID;
 
     public MaterialShowcaseView(Context context) {
         super(context);
@@ -109,6 +114,7 @@ public class MaterialShowcaseView extends FrameLayout implements View.OnTouchLis
         View contentView = LayoutInflater.from(getContext()).inflate(R.layout.showcase_content, this, true);
         mContentBox = contentView.findViewById(R.id.content_box);
         mContentTextView = (TextView) contentView.findViewById(R.id.tv_content);
+        mContentCheckBox = (CheckBox) contentView.findViewById(R.id.tv_never_show);
         mDismissButton = (TextView) contentView.findViewById(R.id.tv_dismiss);
         mDismissButton.setOnClickListener(this);
     }
@@ -176,7 +182,7 @@ public class MaterialShowcaseView extends FrameLayout implements View.OnTouchLis
          * Ensure we reset the flag so the showcase display again.
          */
         if (!mWasDismissed && mSingleUse && mPrefsManager != null) {
-            mPrefsManager.resetShowcase();
+            mPrefsManager.resetShowcase(singleUseShowcaseID);
         }
 
 
@@ -246,7 +252,7 @@ public class MaterialShowcaseView extends FrameLayout implements View.OnTouchLis
                 mBottomMargin = getSoftButtonsBarSizePort((Activity) getContext());
                 FrameLayout.LayoutParams contentLP = (LayoutParams) getLayoutParams();
 
-                if (contentLP!=null && contentLP.bottomMargin != mBottomMargin)
+                if (contentLP != null && contentLP.bottomMargin != mBottomMargin)
                     contentLP.bottomMargin = mBottomMargin;
             }
 
@@ -326,6 +332,12 @@ public class MaterialShowcaseView extends FrameLayout implements View.OnTouchLis
     private void setContentText(CharSequence contentText) {
         if (mContentTextView != null) {
             mContentTextView.setText(contentText);
+        }
+    }
+
+    private void setCheckBoxText(CharSequence text, String showcaseID) {
+        if (mContentCheckBox != null) {
+            mContentCheckBox.setText(text);
         }
     }
 
@@ -466,6 +478,22 @@ public class MaterialShowcaseView extends FrameLayout implements View.OnTouchLis
             return this;
         }
 
+        /**
+         * This feature is intend to be used as a flag
+         * so the user can tell if he wants to be warned every time.
+         */
+        public Builder showUntil(String showAgainShowcaseID) {
+            showcaseView.showUntil(showAgainShowcaseID);
+            return this;
+        }
+
+        /**
+         * Set the text shown on the check box.
+         */
+        public Builder setCheckBoxText(String showAgainShowcaseID) {
+            showcaseView.showUntil(showAgainShowcaseID);
+            return this;
+        }
 
         /**
          * Use auto radius, if true then the showcase circle will auto size based on the target view
@@ -533,12 +561,22 @@ public class MaterialShowcaseView extends FrameLayout implements View.OnTouchLis
             showcaseView.show(activity);
             return showcaseView;
         }
+    }
 
+    private void showUntil(String showcaseID) {
+        mShowAgain = true;
+        mContentCheckBox.setVisibility(VISIBLE);
+        showAgainShowcaseID = showcaseID;
+
+        if (mPrefsManager == null) {
+            mPrefsManager = new PrefsManager(getContext());
+        }
     }
 
     private void singleUse(String showcaseID) {
         mSingleUse = true;
-        mPrefsManager = new PrefsManager(getContext(), showcaseID);
+        singleUseShowcaseID = showcaseID;
+        mPrefsManager = new PrefsManager(getContext());
     }
 
     public void removeFromWindow() {
@@ -580,11 +618,15 @@ public class MaterialShowcaseView extends FrameLayout implements View.OnTouchLis
          * if we're in single use mode and have already shot our bolt then do nothing
          */
         if (mSingleUse) {
-            if (mPrefsManager.hasFired()) {
+            if (mPrefsManager.hasFired(singleUseShowcaseID)) {
                 return false;
             } else {
-                mPrefsManager.setFired();
+                mPrefsManager.setFired(singleUseShowcaseID);
             }
+        }
+
+        if (mPrefsManager.hasFired(showAgainShowcaseID)) {
+            return false;
         }
 
         ((ViewGroup) activity.getWindow().getDecorView()).addView(this);
@@ -621,6 +663,10 @@ public class MaterialShowcaseView extends FrameLayout implements View.OnTouchLis
         } else {
             removeFromWindow();
         }
+
+        if (mContentCheckBox.isChecked()) {
+            mPrefsManager.setFired(showAgainShowcaseID);
+        }
     }
 
     public void fadeIn() {
@@ -649,7 +695,7 @@ public class MaterialShowcaseView extends FrameLayout implements View.OnTouchLis
     }
 
     public void resetSingleUse() {
-        if (mSingleUse && mPrefsManager != null) mPrefsManager.resetShowcase();
+        if (mSingleUse && mPrefsManager != null) mPrefsManager.resetShowcase(singleUseShowcaseID);
     }
 
     /**
